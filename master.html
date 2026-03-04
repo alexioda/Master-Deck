@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveAdaptiv | The Master Sovereign System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #b2945e;
+            --silver: #94a3b8;
+            --charcoal: #1c1917;
+            --stone: #fafaf9;
+            --stone-dark: #f0eeeb;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+        }
+
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white !important; padding: 0; margin: 0; } 
+            .page { 
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 8.5in;
+                height: 11in;
+            }
+            @page {
+                size: 8.5in 11in;
+                margin: 0;
+            }
+            .blueprint-texture { display: none; }
+        }
+
+        body { 
+            background-color: var(--stone-dark); 
+            color: var(--charcoal); 
+            margin: 0; 
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Luxury Blueprint Grid for Desktop View */
+        .blueprint-texture {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(var(--silver) 0.5px, transparent 0.5px),
+                linear-gradient(90deg, var(--silver) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #master-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .page {
+            background-color: var(--stone);
+            width: 8.5in;
+            height: 11in;
+            margin: 2rem auto;
+            padding: 0.6in;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.1);
+            border: 1px solid #e7e5e4;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Architectural Notations */
+        .page::before {
+            content: 'COORD_X: 40.7128 | COORD_Y: 74.0060';
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 6px;
+            font-family: monospace;
+            color: var(--silver);
+            opacity: 0.5;
+            letter-spacing: 2px;
+        }
+
+        .a-logo { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-style: italic; color: var(--gold); }
+        
+        .calendar-grid { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            border-top: 1px solid var(--silver); 
+            border-left: 1px solid var(--silver); 
+            background: white;
+        }
+
+        .calendar-day { 
+            aspect-ratio: 1 / 1.1; 
+            border-right: 1px solid var(--silver); 
+            border-bottom: 1px solid var(--silver); 
+            padding: 6px; 
+            font-size: 8px; 
+            color: #a8a29e; 
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .input-line { 
+            border-bottom: 1px solid var(--silver); 
+            height: 2.4rem; 
+            width: 100%; 
+            margin-bottom: 0.2rem; 
+        }
+
+        .habit-dot {
+            width: 8px;
+            height: 8px;
+            border: 0.5px solid var(--silver);
+            border-radius: 50%;
+        }
+
+        .section-tag {
+            font-size: 7px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            margin-bottom: 8px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <div class="blueprint-texture no-print"></div>
+
+    <div class="no-print p-12 text-center max-w-2xl mx-auto relative z-20">
+        <h1 class="text-4xl font-serif italic mb-4 text-stone-900">The Master Sovereign Calendar</h1>
+        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.4em] mb-10">High-Density Architectural System</p>
+        <button onclick="window.print()" class="px-12 py-5 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.4em] rounded-full shadow-2xl hover:bg-gold-600 hover:text-stone-900 transition-all active:scale-95">Generate Master PDF</button>
+    </div>
+
+    <div id="master-container">
+        <!-- Injected by JS -->
+    </div>
+
+    <script>
+        const months = [
+            { name: "January", theme: "The Quantum Observer", decree: "Reality collapses into the form you choose to observe.", focus: "Perception Architecture" },
+            { name: "February", theme: "The 90-Second Rule", decree: "Chemistry is temporary. Logic is permanent.", focus: "Biological Flush Mastery" },
+            { name: "March", theme: "The Seesaw", decree: "Curiosity is the death of judgment.", focus: "Pivoting to Data" },
+            { name: "April", theme: "The Shadow Government", decree: "I will not be governed by versions of me that no longer exist.", focus: "Subconscious Auditing" },
+            { name: "May", theme: "The Mirror", decree: "My triggers are my treasure map.", focus: "Ownership of Projections" },
+            { name: "June", theme: "Chronos vs. Kairos", decree: "I do not manage time; I architect state.", focus: "Qualitative Presence" },
+            { name: "July", theme: "The Stockdale Paradox", decree: "Face the facts. Maintain the faith.", focus: "Resilience in High-Heat" },
+            { name: "August", theme: "The Fortress Wall", decree: "My focus is my territory. I guard the gate.", focus: "Deep Work & Noise Deletion" },
+            { name: "September", theme: "Sovereign Language", decree: "Precision is power. Apology is a leak.", focus: "Strategic Communication" },
+            { name: "October", theme: "The 7 Levels", decree: "Every friction is fuel for a higher level.", focus: "Energy Ladder Scaling" },
+            { name: "November", theme: "The Architect’s Oath", decree: "I am the declaration of my own meaning.", focus: "Identity Synthesis" },
+            { name: "December", theme: "Absolute Creation", decree: "The world is happening for me.", focus: "Vision & Boundless Reality" }
+        ];
+
+        const container = document.getElementById('master-container');
+
+        months.forEach(month => {
+            const page = document.createElement('div');
+            page.className = "page";
+            page.innerHTML = `
+                <!-- TOP HEADER -->
+                <div class="flex justify-between items-center border-b border-stone-200 pb-6 mb-10">
+                    <div class="flex items-center gap-6">
+                        <div class="w-14 h-14 border-2 border-stone-900 rounded-full flex items-center justify-center">
+                            <span class="a-logo text-3xl pb-1">A</span>
+                        </div>
+                        <div>
+                            <h2 class="text-5xl font-serif italic text-stone-900 leading-none">${month.name}</h2>
+                            <p class="text-[8px] font-bold text-stone-400 uppercase tracking-[0.4em] mt-2">Architecture Cycle // 2026</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="section-tag">Current System Focus</span>
+                        <p class="text-sm font-sans font-bold text-stone-800">${month.focus}</p>
+                    </div>
+                </div>
+
+                <!-- MAIN CONTENT AREA -->
+                <div class="grid grid-cols-12 gap-10 flex-grow">
+                    
+                    <!-- LEFT COLUMN (4 UNITS) -->
+                    <div class="col-span-4 flex flex-col space-y-10">
+                        
+                        <!-- THE DECREE -->
+                        <div class="bg-stone-100 p-8 rounded-3xl border-l-4 border-[#b2945e] shadow-sm relative">
+                            <i data-lucide="quote" class="absolute top-2 right-4 w-10 h-10 text-[#b2945e] opacity-5"></i>
+                            <span class="section-tag">The Monthly Decree</span>
+                            <p class="text-2xl font-serif italic text-stone-800 leading-tight">"${month.decree}"</p>
+                        </div>
+
+                        <!-- STRATEGIC TARGET LOG -->
+                        <div class="space-y-4">
+                            <span class="section-tag">Strategic High-Value Targets</span>
+                            <div class="input-line"></div>
+                            <div class="input-line"></div>
+                            <div class="input-line"></div>
+                        </div>
+
+                        <!-- HABIT ARCHITECTURE (FILLS EMPTY SPACE) -->
+                        <div class="p-6 border border-stone-200 rounded-2xl bg-white flex-grow flex flex-col">
+                            <span class="section-tag text-center mb-6">Protocol Habit Audit</span>
+                            <div class="grid grid-cols-7 gap-3 mb-auto">
+                                ${Array(31).fill(null).map((_, i) => `
+                                    <div class="flex flex-col items-center gap-1">
+                                        <div class="habit-dot"></div>
+                                        <span class="text-[6px] text-stone-400">${i+1}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-[8px] text-stone-400 italic text-center mt-6">Mark 100% execution for sovereign growth.</p>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN (8 UNITS) -->
+                    <div class="col-span-8 flex flex-col">
+                        
+                        <!-- CALENDAR GRID -->
+                        <div class="mb-4">
+                            <div class="grid grid-cols-7 text-center mb-2">
+                                ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<span class="text-[8px] font-bold text-stone-400 uppercase tracking-widest">${d}</span>`).join('')}
+                            </div>
+                            <div class="calendar-grid">
+                                ${Array(35).fill(null).map((_, i) => `<div class="calendar-day">${i + 1 <= 31 ? i + 1 : ''}</div>`).join('')}
+                            </div>
+                        </div>
+
+                        <!-- NOTES / REFLECTIONS -->
+                        <div class="flex-grow flex flex-col mt-4">
+                            <div class="p-8 border border-stone-200 rounded-3xl bg-white shadow-sm flex-grow">
+                                <span class="section-tag">Monthly Synthesis & Reflections</span>
+                                <div class="h-full bg-stone-50 border-b border-stone-100 mb-4"></div>
+                                <div class="h-full bg-stone-50 border-b border-stone-100"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="mt-8 pt-6 border-t border-stone-100 flex justify-between items-center">
+                    <p class="text-[8px] font-bold uppercase tracking-[0.6em] text-stone-300">LiveAdaptiv // Architect: Alex Ioda</p>
+                    <div class="flex gap-4">
+                        <span class="text-[6px] font-mono text-stone-300">SYS_V: 4.0.1</span>
+                        <span class="text-[6px] font-mono text-stone-300">www.liveadaptiv.com</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(page);
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
