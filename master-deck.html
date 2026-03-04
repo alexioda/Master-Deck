@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Master Deck | LiveAdaptiv</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #b2945e; --stone: #fafaf9; --charcoal: #1c1917; }
+        body { background-color: var(--stone); color: var(--charcoal); font-family: 'Inter', sans-serif; overscroll-behavior: none; }
+        .font-serif { font-family: 'Cormorant Garamond', serif; }
+        .blueprint-dot { background-image: radial-gradient(circle at 1px 1px, #e7e5e4 1px, transparent 0); background-size: 30px 30px; }
+        
+        /* --- SECURITY LOCK SCREEN --- */
+        #enterprise-lock {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 999999; transition: opacity 0.5s ease;
+        }
+        .lock-container { background: #0f172a; border: 1px solid #1e293b; padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .lock-logo { color: var(--gold); font-family: 'Cormorant Garamond', serif; font-size: 32px; font-style: italic; margin-bottom: 15px; }
+        .lock-title { color: white; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .lock-desc { color: #94a3b8; font-size: 12px; margin-bottom: 24px; line-height: 1.5; }
+        .lock-input { width: 100%; padding: 14px; background: #020617; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 16px; text-align: center; letter-spacing: 3px; font-family: monospace; font-size: 16px; outline: none; }
+        .lock-input:focus { border-color: var(--gold); }
+        .lock-btn { width: 100%; background: var(--gold); color: #020617; font-weight: bold; border: none; padding: 14px; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; transition: all 0.2s; }
+        .lock-btn:hover { background: #d97706; color: white; }
+        .lock-error { color: #f43f5e; font-size: 11px; margin-top: 12px; display: none; font-weight: bold; letter-spacing: 1px;}
+        #main-app-content { display: none; animation: fadeIn 0.8s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 3D CARD FLIP ANIMATION --- */
+        .scene { width: 100%; max-width: 320px; height: 450px; perspective: 1000px; margin: 0 auto; }
+        .card-container { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: pointer; }
+        .card-container.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* Card Back (What they see first) */
+        .card-face-front { background: linear-gradient(135deg, #1c1917 0%, #0f172a 100%); color: var(--gold); border: 1px solid #334155; }
+        .card-face-front::after { content: ''; position: absolute; inset: 10px; border: 1px solid rgba(178, 148, 94, 0.3); border-radius: 16px; }
+        
+        /* Card Front (The Content) */
+        .card-face-back { background: #ffffff; color: #1c1917; transform: rotateY(180deg); border: 1px solid #e2e8f0; justify-content: space-between; padding: 40px 30px; }
+        
+        /* Modals */
+        #card-modal { display: none; position: fixed; inset: 0; background: rgba(28, 25, 23, 0.95); backdrop-filter: blur(10px); z-index: 100; justify-content: center; align-items: center; flex-direction: column; padding: 20px;}
+        .close-btn { position: absolute; top: 30px; right: 30px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 50%; hover:bg-white/20 transition;}
+
+        .deck-btn { transition: all 0.3s ease; }
+        .deck-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(178, 148, 94, 0.2); border-color: var(--gold); }
+    </style>
+</head>
+<body class="blueprint-dot">
+
+    <!-- SECURITY LOCK -->
+    <div id="enterprise-lock">
+        <div class="lock-container">
+            <div class="lock-logo">A</div>
+            <div class="lock-title">Secured Master Deck</div>
+            <div class="lock-desc">Enter your digital cipher to access the 52-card architecture system.</div>
+            <input type="password" id="cipher-input" class="lock-input" placeholder="ENTER CIPHER">
+            <button onclick="unlockApp()" class="lock-btn">Authenticate</button>
+            <div id="lock-error" class="lock-error">INVALID CIPHER. ACCESS DENIED.</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app-content" class="min-h-screen pb-12">
+        
+        <!-- Navigation -->
+        <nav class="p-5 flex justify-between items-center sticky top-0 z-50 bg-stone-50/90 backdrop-blur-md border-b border-stone-200">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 border border-[#b2945e]/40 rounded-full flex items-center justify-center">
+                    <span class="font-serif italic text-lg text-[#b2945e] pb-0.5">A</span>
+                </div>
+                <span class="text-[9px] font-bold uppercase tracking-[0.4em] text-stone-400">LiveAdaptiv</span>
+            </div>
+            <div class="text-[9px] font-bold uppercase tracking-widest text-[#b2945e]">The Master Deck</div>
+        </nav>
+
+        <main class="max-w-4xl mx-auto p-6 pt-12 text-center">
+            <h1 class="text-5xl font-serif italic text-stone-900 mb-4">Select Your Suit</h1>
+            <p class="text-stone-500 text-sm max-w-lg mx-auto mb-12 leading-relaxed">
+                Identify where you are leaking energy today. Draw a card from the corresponding suit to receive your clinical protocol and tactical reframe.
+            </p>
+
+            <!-- The 4 Suits Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                
+                <!-- Suit 1: Physics -->
+                <button onclick="drawCard('physics')" class="deck-btn bg-white p-8 rounded-[2rem] border border-stone-200 shadow-sm flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-stone-900 group-hover:text-white transition-colors">
+                        <i data-lucide="activity" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="font-serif text-2xl italic text-stone-900 mb-1">Physics (Hardware)</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3">Biology • Somatics • Sleep</p>
+                    <p class="text-xs text-stone-500">Draw this when your body feels exhausted, your chest is tight, or your heart rate is elevated.</p>
+                </button>
+
+                <!-- Suit 2: Inquiry -->
+                <button onclick="drawCard('inquiry')" class="deck-btn bg-white p-8 rounded-[2rem] border border-stone-200 shadow-sm flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-stone-900 group-hover:text-white transition-colors">
+                        <i data-lucide="search" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="font-serif text-2xl italic text-stone-900 mb-1">Inquiry (Software)</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3">Logic • Defusion • Reframing</p>
+                    <p class="text-xs text-stone-500">Draw this when your mind is racing, you are overthinking, or trapped in a negative loop.</p>
+                </button>
+
+                <!-- Suit 3: Sovereignty -->
+                <button onclick="drawCard('sovereignty')" class="deck-btn bg-white p-8 rounded-[2rem] border border-stone-200 shadow-sm flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-stone-900 group-hover:text-white transition-colors">
+                        <i data-lucide="shield" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="font-serif text-2xl italic text-stone-900 mb-1">Sovereignty (Agency)</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3">Boundaries • Control • Choice</p>
+                    <p class="text-xs text-stone-500">Draw this when you feel resentful, overwhelmed by others' demands, or out of control.</p>
+                </button>
+
+                <!-- Suit 4: Philosophy -->
+                <button onclick="drawCard('philosophy')" class="deck-btn bg-white p-8 rounded-[2rem] border border-stone-200 shadow-sm flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-stone-900 group-hover:text-white transition-colors">
+                        <i data-lucide="compass" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="font-serif text-2xl italic text-stone-900 mb-1">Philosophy (Soul)</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3">Identity • Shadow • Purpose</p>
+                    <p class="text-xs text-stone-500">Draw this when you feel imposter syndrome, lack of meaning, or fear of failure.</p>
+                </button>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- THE CARD REVEAL MODAL -->
+    <div id="card-modal">
+        <div class="close-btn" onclick="closeModal()"><i data-lucide="x" class="w-6 h-6"></i></div>
+        
+        <p class="text-stone-400 text-[10px] uppercase tracking-[0.3em] font-bold mb-6 text-center">Tap Card to Reveal Algorithm</p>
+        
+        <div class="scene">
+            <div class="card-container" id="drawn-card" onclick="flipCard()">
+                <!-- FRONT (The Back of the Card visually) -->
+                <div class="card-face card-face-front">
+                    <div class="w-12 h-12 border border-[#b2945e]/50 rounded-full flex items-center justify-center mb-4">
+                        <span class="font-serif italic text-3xl pb-1">A</span>
+                    </div>
+                    <h3 id="card-suit-label" class="text-sm font-bold uppercase tracking-[0.3em] text-white">LiveAdaptiv</h3>
+                </div>
+                
+                <!-- BACK (The Content) -->
+                <div class="card-face card-face-back">
+                    <div class="text-center w-full">
+                        <span id="card-number" class="text-[#b2945e] font-bold text-[10px] uppercase tracking-widest mb-2 block">Card 01</span>
+                        <h2 id="card-title" class="font-serif italic text-3xl text-stone-900 mb-6 leading-tight">The 90-Second Rule</h2>
+                        <div class="w-12 h-px bg-stone-200 mx-auto mb-6"></div>
+                        <p id="card-desc" class="text-sm text-stone-600 leading-relaxed font-medium">
+                            Chemistry is temporary. Logic is permanent. When triggered, your body dumps cortisol. It takes exactly 90 seconds for that chemical to flush through your system. Do not speak. Do not type. Observe the flush.
+                        </p>
+                    </div>
+                    
+                    <div class="w-full text-center mt-6 p-4 bg-stone-50 rounded-xl border border-stone-100">
+                        <span class="block text-[9px] uppercase tracking-widest text-stone-400 font-bold mb-1">The Tactical Reframe</span>
+                        <p id="card-reframe" class="text-xs font-serif italic text-stone-800">"This is not a crisis; this is chemistry."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="closeModal()" class="mt-8 px-8 py-3 bg-white text-stone-900 font-bold rounded-full text-[10px] uppercase tracking-widest hover:bg-stone-200 transition-colors">
+            Acknowledge & Close
+        </button>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // --- SECURITY CIPHER ---
+        const DECK_CIPHER = "ALCHEMY52"; 
+
+        function unlockApp() {
+            const input = document.getElementById('cipher-input').value.trim().toUpperCase();
+            if (input === DECK_CIPHER) {
+                document.getElementById('enterprise-lock').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('enterprise-lock').style.display = 'none';
+                    document.getElementById('main-app-content').style.display = 'block';
+                }, 500);
+            } else {
+                document.getElementById('lock-error').style.display = 'block';
+                document.getElementById('cipher-input').value = '';
+            }
+        }
+        document.getElementById('cipher-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') unlockApp();
+        });
+
+
+        // --- DECK DATA ENGINE ---
+        // I pre-loaded 12 sample cards here. You can add the rest of your 52 cards later!
+        const theDeck = {
+            physics: [
+                { id: "P-01", t: "The 90-Second Rule", d: "When triggered, your amygdala dumps cortisol into your bloodstream. It takes exactly 90 seconds for that chemical to metabolize. If you react before 90 seconds, you are acting on biology, not logic. Do not speak. Do not type. Observe the flush.", r: "\"This is not a crisis; this is chemistry.\"" },
+                { id: "P-02", t: "Tactical Exhale", d: "The inhale is the gas pedal (Sympathetic). The exhale is the brake (Parasympathetic). Right now, your system is flooded with gas. Take a sharp double-inhale through the nose, followed by a long, slow sigh through the mouth to manually brake your heart rate.", r: "\"I control the pace of my biology.\"" },
+                { id: "P-03", t: "The Hardware Reset", d: "You cannot solve a hardware problem with software. If you have slept less than 6 hours, drank excessive caffeine, or haven't moved, your anxiety is physiological. Stop trying to 'think' your way out of exhaustion. Drink water. Step outside. Change your temperature.", r: "\"I treat my body like high-performance machinery.\"" }
+            ],
+            inquiry: [
+                { id: "I-01", t: "The Seesaw of Curiosity", d: "You cannot be curious and judgmental at the exact same time. The brain cannot hold both states. When you feel intense judgment (towards yourself or a colleague), immediately ask a 'How' or 'What' question. Force the brain to pivot.", r: "\"What is the actual data in this situation?\"" },
+                { id: "I-02", t: "Linear Override", d: "Anxiety operates in circles (loops). Logic operates in lines. To break a panic loop, you must force your brain to compute linear data. Name three objects in the room. State the exact time. Do a math problem. Switch tracks.", r: "\"Panic is a circle. Logic is a line.\"" },
+                { id: "I-03", t: "The Fiction Audit", d: "Separate the objective reality from the narrative your brain is spinning. The reality: 'The client did not email back.' The fiction: 'I am losing the account and I will be fired.' Act only on the reality.", r: "\"I do not negotiate with my own fiction.\"" }
+            ],
+            sovereignty: [
+                { id: "S-01", t: "No as Architecture", d: "Every time you say 'Yes' to a distraction out of guilt or fear, you are silently saying 'No' to your own mission. A professional 'No' is not aggressive; it is the fundamental building block of executive bandwidth.", r: "\"My bandwidth is my most expensive asset.\"" },
+                { id: "S-02", t: "The Faux-pology", d: "Stop apologizing for your existence in a professional space. Do not say 'Sorry to bother you.' Say 'Do you have a moment?' Do not say 'Sorry I am late.' Say 'Thank you for your patience.' Speak with assumed authority.", r: "\"I occupy my space without apology.\"" },
+                { id: "S-03", t: "Drop The Rope", d: "You are engaged in a power struggle. You are pulling on a rope, trying to force an outcome or prove you are right. The easiest way to win a tug-of-war is to simply drop your end of the rope. Let them fall. Walk away.", r: "\"I do not need to be right to be effective.\"" }
+            ],
+            philosophy: [
+                { id: "H-01", t: "The Golden Shadow", d: "Imposter syndrome occurs because you project your own brilliance onto others. If you can recognize elite leadership in a Partner or colleague, it means that trait exists within you. You cannot recognize what you do not possess.", r: "\"I possess the greatness I admire in others.\"" },
+                { id: "H-02", t: "The Failure Resume", d: "You are hiding your failures because you view them as liabilities. Elite performers view failures as highly expensive data acquisition. What specific asset or skill did your worst failure buy you? Claim the asset.", r: "\"I have paid heavily for my resilience.\"" },
+                { id: "H-03", t: "The Observer Effect", d: "In quantum mechanics, a particle changes behavior when it is observed. In leadership, the environment changes based on how you choose to look at it. If you look for threats, you will find a war. If you look for leverage, you will find a tool.", r: "\"Reality bends to the frame I place upon it.\"" }
+            ]
+        };
+
+        // --- INTERACTION LOGIC ---
+        function drawCard(suit) {
+            // Pick a random card from the chosen suit
+            const suitCards = theDeck[suit];
+            const randomCard = suitCards[Math.floor(Math.random() * suitCards.length)];
+            
+            // Populate the card DOM
+            document.getElementById('card-suit-label').innerText = suit.toUpperCase();
+            document.getElementById('card-number').innerText = `Card ${randomCard.id}`;
+            document.getElementById('card-title').innerText = randomCard.t;
+            document.getElementById('card-desc').innerText = randomCard.d;
+            document.getElementById('card-reframe').innerText = randomCard.r;
+            
+            // Show Modal & ensure card is face down
+            document.getElementById('card-modal').style.display = 'flex';
+            document.getElementById('drawn-card').classList.remove('is-flipped');
+        }
+
+        function flipCard() {
+            document.getElementById('drawn-card').classList.add('is-flipped');
+        }
+
+        function closeModal() {
+            document.getElementById('card-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
+
+
